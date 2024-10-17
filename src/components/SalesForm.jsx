@@ -1,26 +1,74 @@
 // src/components/SalesForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc,addDoc } from 'firebase/firestore';
 
 const SalesForm = () => {
-  const [productId, setProductId] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [totalPrice, setTotalPrice] = useState('');
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
 
+  // Firestoreから商品を取得
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productCollection = collection(db, 'products');
+      const productSnapshot = await getDocs(productCollection);
+      const productList = productSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setProducts(productList);
+    };
+
+    fetchProducts();
+  }, []);
+
+  // 商品が選択された時の処理
+  const handleProductChange = (e) => {
+    const productId = e.target.value;
+    const product = products.find((p) => p.id === productId);
+    setSelectedProduct(product);
+    setTotalPrice(product ? product.price * quantity : 0);
+  };
+
+  // 数量が変更された時の処理
+  const handleQuantityChange = (e) => {
+    const qty = e.target.value;
+    setQuantity(qty);
+    if (selectedProduct) {
+      setTotalPrice(selectedProduct.price * qty);
+    }
+  };
+
+  // 購入を処理
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedProduct || quantity <= 0 || quantity > selectedProduct.stock) {
+      alert("正しい商品と数量を選択してください。");
+      return;
+    }
+
     try {
-      await addDoc(collection(db, 'sales'), {
-        productId,
+      // 在庫を減らす
+      const productRef = doc(db, 'products', selectedProduct.id);
+      await updateDoc(productRef, {
+        stock: selectedProduct.stock - quantity,
+      });
+
+      // 売上を記録
+      const salesRef = collection(db, 'sales');
+      await addDoc(salesRef, {
+        productId: selectedProduct.id,
         quantity: parseInt(quantity),
-        totalPrice: parseInt(totalPrice),
+        totalPrice: totalPrice,
         timestamp: new Date(),
       });
-      setProductId('');
-      setQuantity('');
-      setTotalPrice('');
-      alert('売上が記録されました');
+
+      alert('購入が完了しました！');
+      setQuantity(0);
+      setTotalPrice(0);
+      setSelectedProduct(null);
     } catch (error) {
       console.error("エラーが発生しました: ", error);
     }
@@ -28,28 +76,34 @@ const SalesForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="商品ID"
-        value={productId}
-        onChange={(e) => setProductId(e.target.value)}
-        required
-      />
-      <input
-        type="number"
-        placeholder="数量"
-        value={quantity}
-        onChange={(e) => setQuantity(e.target.value)}
-        required
-      />
-      <input
-        type="number"
-        placeholder="合計金額"
-        value={totalPrice}
-        onChange={(e) => setTotalPrice(e.target.value)}
-        required
-      />
-      <button type="submit">売上記録</button>
+      <h2>商品を購入する</h2>
+      <label htmlFor="product">商品を選択:</label>
+      <select id="product" onChange={handleProductChange} value={selectedProduct?.id || ''}>
+        <option value="">商品を選んでください</option>
+        {products.map(product => (
+          <option key={product.id} value={product.id}>
+            {product.name} - {product.price}円 (在庫: {product.stock})
+          </option>
+        ))}
+      </select>
+
+      {selectedProduct && (
+        <>
+          <label htmlFor="quantity">数量:</label>
+          <input
+            type="number"
+            id="quantity"
+            value={quantity}
+            onChange={handleQuantityChange}
+            min="1"
+            max={selectedProduct.stock}
+          />
+        </>
+      )}
+
+      <p>合計金額: {totalPrice}円</p>
+
+      <button type="submit" disabled={!selectedProduct || quantity <= 0}>購入する</button>
     </form>
   );
 };
