@@ -6,14 +6,15 @@
   "scripts": {
     "dev": "vite",
     "preview": "vite preview",
-    "build": "vite build && xcopy dist docs /e /i",                   
+    "build": "vite build && xcopy dist docs /e /i",
     "rebuild": "vite build && rmdir /s /q docs && xcopy dist docs /e /i",
     "git": "git add . && git commit && git push origin main"
   },
   "dependencies": {
     "firebase": "^10.14.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
