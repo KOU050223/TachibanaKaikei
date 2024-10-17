@@ -29,7 +29,6 @@ const ProductList = () => {
             <p>商品名: {product.name}</p>
             <p>値段: {product.price}円</p>
             <p>在庫数: {product.stock}</p>
-            <p>販売可能: {product.is_available ? 'はい' : 'いいえ'}</p>
           </li>
         ))}
       </ul>
