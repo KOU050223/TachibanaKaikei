@@ -1,7 +1,7 @@
 // src/components/ProductForm.jsx
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 
 const ProductForm = () => {
   const [productName, setProductName] = useState('');
@@ -49,17 +49,31 @@ const ProductForm = () => {
     e.preventDefault();
     try {
       const productRef = doc(db, 'products', selectedProduct);
-      const selected = products.find(p => p.id === selectedProduct);
-      if (selected) {
-        await updateDoc(productRef, {
-          stock: parseInt(stockUpdate),
-        });
-        alert('在庫が更新されました');
-        setStockUpdate('');
-        setSelectedProduct('');
-      }
+      await updateDoc(productRef, {
+        stock: parseInt(stockUpdate),
+      });
+      alert('在庫が更新されました');
+      setStockUpdate('');
+      setSelectedProduct('');
     } catch (error) {
       console.error("エラーが発生しました: ", error);
+    }
+  };
+
+  // 商品削除の処理
+  const handleDeleteProduct = async () => {
+    if (selectedProduct) {
+      try {
+        const productRef = doc(db, 'products', selectedProduct);
+        await deleteDoc(productRef);
+        setProducts(products.filter(product => product.id !== selectedProduct));
+        setSelectedProduct('');
+        alert('商品が削除されました');
+      } catch (error) {
+        console.error("エラーが発生しました: ", error);
+      }
+    } else {
+      alert('削除する商品を選んでください。');
     }
   };
 
@@ -116,6 +130,11 @@ const ProductForm = () => {
         />
         <button type="submit" disabled={!selectedProduct}>在庫を修正する</button>
       </form>
+
+      <h2>商品削除</h2>
+      <button onClick={handleDeleteProduct} disabled={!selectedProduct}>
+        商品を削除する
+      </button>
     </div>
   );
 };
