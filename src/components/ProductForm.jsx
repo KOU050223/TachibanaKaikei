@@ -1,4 +1,3 @@
-// src/components/ProductForm.jsx
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';

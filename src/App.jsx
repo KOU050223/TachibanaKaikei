@@ -4,6 +4,7 @@ import ProductForm from './components/ProductForm';
 import SalesForm from './components/SalesForm';
 import ProductList from './components/ProductList';
 import PurchaseHistory from './components/PurchaseHistory';
+import SalesSummary from './components/SalesSummary';
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
           <li><Link to="/sales">売上伝票作成</Link></li>
           <li><Link to="/product-list">商品一覧</Link></li>
           <li><Link to="/purchase-history">購入履歴</Link></li>
+          <li><Link to="/sales-summary">売上データ</Link></li>
         </ul>
       </nav>
       
@@ -22,6 +24,7 @@ const App = () => {
         <Route path="/sales" element={<SalesForm />} />
         <Route path="/product-list" element={<ProductList />} />
         <Route path="/purchase-history" element={<PurchaseHistory />} />
+        <Route path="/sales-summary" element={<SalesSummary />} />
       </Routes>
     </Router>
   );
